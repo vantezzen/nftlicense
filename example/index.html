@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NFTLicense Browser Example</title>
+  </head>
+  <body>
+    <button id="validate">Request validating the license</button>
+
+    <!-- Include the NFTLicenseBrowser API -->
+    <script>
+      window.process = {
+        env: {
+          NODE_DEBUG: false,
+        },
+      };
+    </script>
+    <script src="/dist/NFTLicenseBrowser.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const licenser = new NFTLicenseBrowser();
+
+      // Complete challenge as soon as the server sends us one
+      socket.on('challenge', (challenge) => {
+        console.log('Received challenge from backend', challenge);
+
+        licenser.completeChallenge(challenge).then((answer) => {
+          console.log('Completed challenge with answer', answer);
+          socket.emit('challenge answer', answer);
+        });
+      });
+
+      document.getElementById('validate').addEventListener('click', () => {
+        socket.emit('request verification');
+      });
+    </script>
+  </body>
+</html>
