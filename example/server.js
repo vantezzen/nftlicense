@@ -9,7 +9,8 @@ const io = new Server(server);
 
 // Create the licenser for our example NFT
 const NFTLicense = require('../dist/NFTLicense');
-console.log(NFTLicense);
+// This licensor uses an example NFT created for this demo
+// You can find the NFT at https://opensea.io/assets/0x495f947276749ce646f68ac8c248420045cb7b5e/79454497198554636117345343882506479954454786964086013490182127876323749172863
 const licenserApi = new NFTLicense.OpenSeaApi(
   '0x495f947276749ce646f68ac8c248420045cb7b5e',
   '79454497198554636117345343882506479954454786964086013490182127876323749172863'
