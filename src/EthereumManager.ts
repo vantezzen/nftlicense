@@ -1,15 +1,22 @@
 import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
-import { Challenge, ChallengeAnswer } from './shared';
+import { LicensingRequest, LicensingResponse } from './shared';
 
 export default class EthereumManager {
-  verifyChallengeSignature(challenge: Challenge, answer: ChallengeAnswer) {
-    const msgBufferHex = bufferToHex(Buffer.from(challenge.message, 'utf8'));
+  verifyLicensingRequestSignature(
+    licensingRequest: LicensingRequest,
+    licensingResponse: LicensingResponse
+  ) {
+    const msgBufferHex = bufferToHex(
+      Buffer.from(licensingRequest.message, 'utf8')
+    );
     const address = recoverPersonalSignature({
       data: msgBufferHex,
-      sig: answer.answerMessage!,
+      sig: licensingResponse.answerMessage!,
     });
 
-    return address.toLowerCase() === answer.publicAddress!.toLowerCase();
+    return (
+      address.toLowerCase() === licensingResponse.publicAddress!.toLowerCase()
+    );
   }
 }

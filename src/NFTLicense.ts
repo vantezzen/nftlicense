@@ -1,6 +1,6 @@
-import { ChallengeAnswer } from './shared';
+import { LicensingResponse } from './shared';
 import { Api } from './api/Api';
-import ChallengeStorage from './ChallengeStorage';
+import RequestStorage from './RequestStorage';
 import EthereumManager from './EthereumManager';
 
 const defaultPreamble = `Please sign this message to verify your ownership of the wallet.
@@ -12,40 +12,43 @@ After verifying your ownership, we are able to verify that your wallet contains 
  * License your software based on NFTs
  */
 export default class NFTLicense {
-  private challengeStorage = new ChallengeStorage();
+  private requestStorage = new RequestStorage();
   private ethereumManager = new EthereumManager();
 
   constructor(private api: Api, private preamble = defaultPreamble) {}
 
   /**
-   * Validate that the user returning a challenge answer has a valid license
+   * Validate that the user returning a licensing response has a valid license
    *
-   * @param challengeAnswer Answer of a challenge sent to the user
+   * @param licensingResponse Answer of a licensing response sent to the user
    */
-  public async validateLicenseWithChallenge(
-    challengeAnswer: ChallengeAnswer
+  public async validateLicensingResponse(
+    licensingResponse: LicensingResponse
   ): Promise<boolean> {
-    if (!this.challengeStorage.validateChallengeAnswer(challengeAnswer)) {
+    if (!this.requestStorage.validateLicensingResponse(licensingResponse)) {
       return false;
     }
 
-    const challenge = this.challengeStorage.extractChallengeById(
-      challengeAnswer.challengeId
+    const licensingRequest = this.requestStorage.extractLicensingRequestById(
+      licensingResponse.requestId
     );
-    if (!challenge) {
+    if (!licensingRequest) {
       return false;
     }
 
     if (
-      !this.ethereumManager.verifyChallengeSignature(challenge, challengeAnswer)
+      !this.ethereumManager.verifyLicensingRequestSignature(
+        licensingRequest,
+        licensingResponse
+      )
     ) {
       return false;
     }
 
-    return await this.api.hasValidLicense(challengeAnswer.publicAddress!);
+    return await this.api.hasValidLicense(licensingResponse.publicAddress!);
   }
 
-  public getChallenge() {
-    return this.challengeStorage.getChallenge(this.preamble);
+  public createLicensingRequest() {
+    return this.requestStorage.createLicensingRequest(this.preamble);
   }
 }

@@ -1,17 +1,19 @@
-import { Challenge, ChallengeAnswer } from '../shared';
+import { LicensingRequest, LicensingResponse } from '../shared';
 const Web3 = require('web3'); // web3js currently has a bug that breaks importing with "import", thus needing require
 
 /**
- * NFTLicenseBrowser: Browser counterpart for NFTLicense to enable signing challenges
+ * NFTLicenseBrowser: Browser counterpart for NFTLicense to enable signing licensing requests
  *
  * Signature code based on https://github.com/amaurym/login-with-metamask-demo/blob/master/packages/frontend/src/Login/Login.tsx
  */
 export default class NFTLicenseBrowser {
   private web3?: typeof Web3;
 
-  async completeChallenge(challenge: Challenge): Promise<ChallengeAnswer> {
-    const answer: ChallengeAnswer = {
-      challengeId: challenge.id,
+  async createLicensingResponse(
+    licensingRequest: LicensingRequest
+  ): Promise<LicensingResponse> {
+    const answer: LicensingResponse = {
+      requestId: licensingRequest.id,
     };
 
     const hasWalletAccess = await this.requestWalletAccess();
@@ -25,7 +27,10 @@ export default class NFTLicenseBrowser {
     }
     answer.publicAddress = walletAddress;
 
-    const signature = await this.signMessage(challenge.message, walletAddress);
+    const signature = await this.signMessage(
+      licensingRequest.message,
+      walletAddress
+    );
     if (!signature) {
       return answer;
     }

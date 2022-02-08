@@ -24,14 +24,24 @@
       const socket = io();
       const licenser = new NFTLicenseBrowser();
 
-      // Complete challenge as soon as the server sends us one
-      socket.on('challenge', (challenge) => {
-        console.log('Received challenge from backend', challenge);
+      // Complete licensing request as soon as the server sends us one
+      socket.on('licensing request', (licensingRequest) => {
+        console.log(
+          'Received licensing request from backend',
+          licensingRequest
+        );
 
-        licenser.completeChallenge(challenge).then((answer) => {
-          console.log('Completed challenge with answer', answer);
-          socket.emit('challenge answer', answer);
+        licenser.createLicensingResponse(licensingRequest).then((answer) => {
+          console.log('Completed licensing request with answer', answer);
+          socket.emit('licensing response', answer);
         });
+      });
+
+      // Just for this demo to quickly show if a valid license has been detected
+      socket.on('licensing completed', (isValid) => {
+        alert(
+          `Request completed, your license is ${isValid ? 'valid' : 'invalid'}`
+        );
       });
 
       document.getElementById('validate').addEventListener('click', () => {

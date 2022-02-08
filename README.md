@@ -26,14 +26,14 @@ NFTLicense if split into two parts to enable secure license validation:
 - `NFTLicense` runs on your trusted server to ultimately determine if the license is valid
 - `NFTLicenseBrowser` runs in the user's browser to interact with the user's Web3 Provider (e.g. MetaMask browser extension)
 
-![Flow Chart of verifying a user's license](./docs/flowchart.png)
+![Flow Chart of verifying a user's license](https://raw.githubusercontent.com/vantezzen/nftlicense/master/docs/flowchart.png)
 
 The above image shows a flow chart of how NFTLicense verifies a valid license:
 
 - Your server software requires the license to be verified (e.g. when the user opens the application)
-- NFTLicense will create a challenge object to verify the ownership of the user's wallet
-- You send the challenge object to the user's browser (e.g. using WebSockets)
-- NFTLicenseBrowser is invoked with the challenge object to answer the server's challenge
+- NFTLicense will create a licensing request object to verify the ownership of the user's wallet
+- You send the licensing request object to the user's browser (e.g. using WebSockets)
+- NFTLicenseBrowser is invoked with the licensing request object to answer the server's licensing request
 - The user will get a MetaMask popup, prompting them to sign a message text
 - NFTLicenseBrowser will return an answer object to your software
 - Your software transferres the answer object back to your server (e.g. using WebSockets again)
@@ -84,18 +84,20 @@ const licenser = new NFTLicense(apiProvider);
 // Application code to enable verifying the license for a user of your program
 const verifyLicense = () => {
 
-  // First, create a wallet challenge for getting the user's wallet and a signature
-  const challenge = licenser.getChallenge();
+  // First, create a wallet licensing request for getting the user's wallet and a signature
+  // Please note that a licensing request can only every be used *once*!
+  // To verify licenses for multiple users, create multiple licensing requests instead
+  const licensingRequest = licenser.createLicensingRequest();
 
-  // Now send the challenge to the user's browser using your preferred method.
+  // Now send the licensing request to the user's browser using your preferred method.
   // In this case, it will use a socket.io connection with a callback the user's
-  // browser will send after completing the challenge.
+  // browser will send after completing the licensing request.
   // Take a look at the browser usage further below to see the code on the other side
-  socket.emit('license challenge', challenge, (answer) => {
+  socket.emit('licensing request', licensingRequest, (answer) => {
 
     // We now got an answer from the user. We can simply pass it back to the licenser to let it
     // validate the rest for us
-    licenser.validateLicenseWithChallenge(answer).then((isValid) => {
+    licenser.validateLicensingResponse(answer).then((isValid) => {
 
       // We now got our license verification!
       // If "isValid" is true, NFTLicense has confirmed that the user owns the wallet and the NFT
@@ -119,12 +121,12 @@ import { NFTLicenseBrowser } from 'nftlicense';
 // completely on the server side
 const licenser = new NFTLicenseBrowser();
 
-// The server asks us to answer the challenge using our wallet
-socket.on('license challenge', (challenge, callback) => {
+// The server asks us to answer the licensing request using our wallet
+socket.on('licensing request', (licensingRequest, callback) => {
 
-  // Let the created licenser complete the challenge
+  // Let the created licenser complete the licensing request
   // This will show the user a MetaMask (or other Web3 provider) popup to sign the message
-  licenser.completeChallenge(challenge).then((answer) => {
+  licenser.createLicensingResponse(licensingRequest).then((answer) => {
 
     // Simply relay the answer back to the server as all verification is done there
     callback(answer);
@@ -144,22 +146,22 @@ socket.on('license challenge', (challenge, callback) => {
 
   `api`: API Provider to use for verifying ownership
 
-  `pramble` (optional): Text to prepend to the challenge message. This will be shown on the user's MetaMask popup. If not set, the preamble will be:
+  `pramble` (optional): Text to prepend to the licensing request message. This will be shown on the user's MetaMask popup. If not set, the preamble will be:
 
   ```
   Please sign this message to verify your ownership of the wallet.
   After verifying your ownership, we are able to verify that your wallet contains the necessary license NFT to use this software.
   ```
 
-- `getChallenge(): object`
+- `createLicensingRequest(): object`
 
-  Returns a new challenge object
+  Returns a new licensing request object
 
-- `validateLicenseWithChallenge(answer: object): Promise<boolean>`
+- `validateLicensingResponse(answer: object): Promise<boolean>`
 
   Validate an answer received from the user's browser
 
-  `answer`: Answer object as returned by `NFTLicenseBrowser.completeChallenge`
+  `answer`: Answer object as returned by `NFTLicenseBrowser.createLicensingResponse`
 
 ### NFTLicenseBrowser
 
@@ -169,9 +171,9 @@ socket.on('license challenge', (challenge, callback) => {
 
   Create a new NFTLicenseBrowser browser-side licensor
 
-- `completeChallenge(challenge: object): Promise<object>`
+- `createLicensingResponse(licensingRequest: object): Promise<object>`
 
-  Complete a challenge created by the server.
+  Complete a licensing request created by the server.
 
   This will return an answer object after the user has permitted signing
 
@@ -209,7 +211,7 @@ hasValidLicense(address: string): Promise<boolean>;
 
 This function show, given a wallet adress, return if the wallet contains a valid license.
 
-Depending on the API used this may require additional information (e.g. the NFT's contract address and token ID) - this should be got using the class constructor instead.
+Depending on the API used this may require additional information (e.g. the NFT's contract address and token ID) - this should be got using the class constructor instead. Using this method you can also create API providers that allow multiple different NFTs as licensing NFTs instead of only accepting one.
 
 For an example of a bare minimum API provider, take a look at the Mock provider at `src/api/MockApi.ts`, for a full example look at `src/api/OpenSea.ts`.
 

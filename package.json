@@ -27,6 +27,7 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/node-fetch": "^2.0.0",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
@@ -98,7 +99,7 @@
     "clean-webpack-plugin": "^4.0.0",
     "eth-sig-util": "^3.0.1",
     "ethereumjs-util": "^7.1.4",
-    "node-fetch": "^3.2.0",
+    "node-fetch": "^2",
     "uuid": "^8.3.2",
     "web3": "~1.6",
     "webpack-node-externals": "^3.0.0"
