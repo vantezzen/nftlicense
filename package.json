@@ -1,6 +1,6 @@
 {
   "name": "nftlicense",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Software licensing using NFTs",
   "main": "dist/NFTLicense.js",
   "typings": "dist/NFTLicense.d.ts",
